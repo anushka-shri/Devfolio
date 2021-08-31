@@ -91,7 +91,7 @@ router.post(
 
 			// Updating profile fields
 			if (profile) {
-				profile = await profile.findOneAndUpdate(
+				profile = await Profile.findOneAndUpdate(
 					{ user: req.user.id },
 					{ $set: profileFields },
 					{ new: true },
@@ -110,5 +110,41 @@ router.post(
 		}
 	},
 );
+
+// #route GET api/profile
+// #desc Get all profiles
+// #access Public
+
+router.get('/', async (req, res) => {
+	try {
+		const profiles = await Profile.find().populate('user', ['name', 'avatar']);
+		res.json(profiles);
+	} catch (error) {
+		console.error(err.message);
+		res.status(500).send('Server error');
+	}
+});
+
+// #route GET api/profile/user/:user_id
+// #desc Get profile by user ID
+// #access Public
+
+router.get('/user/:user_id', async (req, res) => {
+	try {
+		const profile = await Profile.findOne({
+			user: req.params.user_id,
+		}).populate('user', ['name', 'avatar']);
+
+		if (!profile) {
+			return res
+				.status(400)
+				.json({ message: 'No profile found for this user' });
+		}
+		res.json(profile);
+	} catch (error) {
+		console.error(err.message);
+		res.status(500).send('Server error');
+	}
+});
 
 module.exports = router;
